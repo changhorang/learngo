@@ -2,6 +2,12 @@ package exam
 
 import "fmt"
 
+type person struct {
+	name    string
+	age     int
+	favFood []string
+}
+
 func mem_add() {
 	a := 2
 	b := &a // b의 값은 유지 (&: memory address)
@@ -22,4 +28,10 @@ func mem_add() {
 	// map
 	nicc := map[string]string{"name": "aaaa", "age": "12"} // map := [key type]value type{"key": "value"}
 	fmt.Println(nicc)
+
+	// structs : map보다 유연함
+	favFood := []string{"cola", "chicken"}
+	_icc := person{name: "nicc", age: 18, favFood: favFood}
+	fmt.Println(_icc)
+	fmt.Println(_icc.age)
 }
