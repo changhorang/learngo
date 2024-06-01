@@ -18,4 +18,8 @@ func mem_add() {
 	_names := []string{"a", "b", "c"} // slice := []type{value}
 	_names = append(_names, "ddd", "eee")
 	fmt.Println(_names)
+
+	// map
+	nicc := map[string]string{"name": "aaaa", "age": "12"} // map := [key type]value type{"key": "value"}
+	fmt.Println(nicc)
 }
