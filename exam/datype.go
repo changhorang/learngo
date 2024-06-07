@@ -1,4 +1,4 @@
-package golangstudy
+package exam
 
 import (
 	"fmt"
