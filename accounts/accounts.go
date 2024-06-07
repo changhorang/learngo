@@ -1,6 +1,9 @@
 package accounts
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 // Account struck : private
 type Account struct {
@@ -32,4 +35,19 @@ func (a *Account) Withdraw(amount int) error {
 // Balance of your receiver
 func (a Account) Balance() int {
 	return a.balance
+}
+
+// Change Owner
+func (a *Account) ChangeOwner(newOwner string) {
+	a.owner = newOwner
+}
+
+// Account Owner
+func (a Account) Owner() string {
+	return a.owner
+}
+
+// Go return Class Method
+func (a Account) String() string {
+	return fmt.Sprint(a.Owner(), "'s account.\nHas: ", a.Balance())
 }
