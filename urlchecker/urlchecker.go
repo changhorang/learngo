@@ -15,6 +15,7 @@ type result struct {
 var errRequestFailed = errors.New("Request is failed!")
 
 func main() {
+	results := make(map[string]string)
 	chl := make(chan result)
 
 	urls := []string{
@@ -33,7 +34,12 @@ func main() {
 	}
 
 	for i := 0; i < len(urls); i++ {
-		fmt.Println(<-chl)
+		result := <-chl
+		results[result.url] = result.status
+	}
+
+	for url, status := range results {
+		fmt.Println(url, status)
 	}
 }
 
@@ -42,7 +48,6 @@ func hitURL(url string, chl chan result) {
 	fmt.Println("Checking: ", url)
 
 	resp, err := http.Get(url)
-	fmt.Println(err, resp.StatusCode)
 
 	if err != nil || resp.StatusCode >= 400 {
 		status = "FAILED"
