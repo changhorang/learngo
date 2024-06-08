@@ -23,17 +23,25 @@ type extractedJob struct {
 
 func main() {
 	var jobs []extractedJob
+	c := make(chan []extractedJob)
 	totalPages := getPages()
 	for i := 1; i < totalPages; i++ {
-		extractedJobs := getPage(i)
+		go getPage(i, c)
+	}
+
+	for i := 1; i < totalPages; i++ {
+		extractedJobs := <-c
 		jobs = append(jobs, extractedJobs...)
 	}
+
 	writeJobs(jobs)
 	fmt.Println("DONE JOB Scrapper!")
 }
 
-func getPage(page int) []extractedJob {
+func getPage(page int, mainC chan []extractedJob) {
 	var jobs []extractedJob
+	c := make(chan extractedJob)
+
 	pageURL := baseURL + "&recruitPage=" + strconv.Itoa(page)
 	fmt.Println("Requesting ", pageURL)
 	res, err := http.Get(pageURL)
@@ -47,11 +55,13 @@ func getPage(page int) []extractedJob {
 	searcItems := doc.Find(".item_recruit")
 
 	searcItems.Each(func(i int, card *goquery.Selection) {
-		job := extractJob(card)
-		jobs = append(jobs, job)
-
+		go extractJob(card, c)
 	})
-	return jobs
+	for i := 0; i < searcItems.Length(); i++ {
+		job := <-c
+		jobs = append(jobs, job)
+	}
+	mainC <- jobs
 }
 
 func getPages() int {
@@ -87,14 +97,14 @@ func cleeaString(str string) string {
 	return strings.Join(strings.Fields(strings.TrimSpace(str)), " ")
 }
 
-func extractJob(card *goquery.Selection) extractedJob {
+func extractJob(card *goquery.Selection, c chan<- extractedJob) {
 	id, _ := card.Attr("value")
 	title := cleeaString(card.Find(".job_tit>a").Text())
 	job_condition := cleeaString(card.Find(".job_condition").Text())
 	job_date := cleeaString(card.Find(".job_date").Text())
 	job_sector := cleeaString(card.Find(".job_sector").Text())
 
-	return extractedJob{
+	c <- extractedJob{
 		id:            id,
 		title:         title,
 		job_condition: job_condition,
