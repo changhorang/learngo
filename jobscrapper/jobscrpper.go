@@ -1,8 +1,10 @@
 package main // src에서 main.go로 실행 가능
 import (
+	"encoding/csv"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
@@ -26,13 +28,16 @@ func main() {
 		extractedJobs := getPage(i)
 		jobs = append(jobs, extractedJobs...)
 	}
-	fmt.Println(jobs)
+	writeJobs(jobs)
+	fmt.Println("DONE JOB Scrapper!")
 }
 
 func getPage(page int) []extractedJob {
 	var jobs []extractedJob
 	pageURL := baseURL + "&recruitPage=" + strconv.Itoa(page)
+	fmt.Println("Requesting ", pageURL)
 	res, err := http.Get(pageURL)
+
 	checkErr(err)
 	checkCode(res)
 
@@ -88,12 +93,31 @@ func extractJob(card *goquery.Selection) extractedJob {
 	job_condition := cleeaString(card.Find(".job_condition").Text())
 	job_date := cleeaString(card.Find(".job_date").Text())
 	job_sector := cleeaString(card.Find(".job_sector").Text())
-	fmt.Println(id, title, job_condition, job_date, job_sector)
+
 	return extractedJob{
 		id:            id,
 		title:         title,
 		job_condition: job_condition,
 		job_date:      job_date,
 		job_sector:    job_sector,
+	}
+}
+
+func writeJobs(jobs []extractedJob) {
+	file, err := os.Create("jobs.csv")
+	checkErr(err)
+
+	w := csv.NewWriter(file)
+	defer w.Flush()
+
+	headers := []string{"ID (https://www.saramin.co.kr/zf_user/jobs/relay/view?isMypage=no&rec_idx={id})", "Title", "Job_condition", "Job_date", "Job_sector"}
+
+	wErr := w.Write(headers)
+	checkErr(wErr)
+
+	for _, job := range jobs {
+		jobSlice := []string{job.id, job.title, job.job_condition, job.job_date, job.job_sector}
+		jwErr := w.Write(jobSlice)
+		checkErr(jwErr)
 	}
 }
