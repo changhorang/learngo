@@ -1,4 +1,4 @@
-package main // src에서 main.go로 실행 가능
+package scrapper // src에서 main.go로 실행 가능
 import (
 	"encoding/csv"
 	"fmt"
@@ -11,8 +11,6 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-var baseURL string = "https://saramin.co.kr/zf_user/search/recruit?searchword=python"
-
 type extractedJob struct {
 	id            string
 	title         string
@@ -21,12 +19,14 @@ type extractedJob struct {
 	job_sector    string
 }
 
-func main() {
+// Scrape Indeed by a term
+func scrape(term string) {
+	var baseURL string = "https://saramin.co.kr/zf_user/search/recruit?searchword=" + term
 	var jobs []extractedJob
 	c := make(chan []extractedJob)
-	totalPages := getPages()
+	totalPages := getPages(baseURL)
 	for i := 1; i < totalPages; i++ {
-		go getPage(i, c)
+		go getPage(i, baseURL, c)
 	}
 
 	for i := 1; i < totalPages; i++ {
@@ -38,11 +38,11 @@ func main() {
 	fmt.Println("DONE JOB Scrapper!")
 }
 
-func getPage(page int, mainC chan []extractedJob) {
+func getPage(page int, url string, mainC chan []extractedJob) {
 	var jobs []extractedJob
 	c := make(chan extractedJob)
 
-	pageURL := baseURL + "&recruitPage=" + strconv.Itoa(page)
+	pageURL := url + "&recruitPage=" + strconv.Itoa(page)
 	fmt.Println("Requesting ", pageURL)
 	res, err := http.Get(pageURL)
 
@@ -64,9 +64,9 @@ func getPage(page int, mainC chan []extractedJob) {
 	mainC <- jobs
 }
 
-func getPages() int {
+func getPages(url string) int {
 	pages := 0
-	res, err := http.Get(baseURL)
+	res, err := http.Get(url)
 	checkErr(err)
 	checkCode(res)
 
@@ -93,16 +93,17 @@ func checkCode(res *http.Response) {
 	}
 }
 
-func cleeaString(str string) string {
+// CleanString clearns a string
+func cleanString(str string) string {
 	return strings.Join(strings.Fields(strings.TrimSpace(str)), " ")
 }
 
 func extractJob(card *goquery.Selection, c chan<- extractedJob) {
 	id, _ := card.Attr("value")
-	title := cleeaString(card.Find(".job_tit>a").Text())
-	job_condition := cleeaString(card.Find(".job_condition").Text())
-	job_date := cleeaString(card.Find(".job_date").Text())
-	job_sector := cleeaString(card.Find(".job_sector").Text())
+	title := cleanString(card.Find(".job_tit>a").Text())
+	job_condition := cleanString(card.Find(".job_condition").Text())
+	job_date := cleanString(card.Find(".job_date").Text())
+	job_sector := cleanString(card.Find(".job_sector").Text())
 
 	c <- extractedJob{
 		id:            id,
