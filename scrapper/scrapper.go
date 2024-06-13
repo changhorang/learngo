@@ -94,16 +94,16 @@ func checkCode(res *http.Response) {
 }
 
 // CleanString clearns a string
-func cleanString(str string) string {
+func CleanString(str string) string {
 	return strings.Join(strings.Fields(strings.TrimSpace(str)), " ")
 }
 
 func extractJob(card *goquery.Selection, c chan<- extractedJob) {
 	id, _ := card.Attr("value")
-	title := cleanString(card.Find(".job_tit>a").Text())
-	job_condition := cleanString(card.Find(".job_condition").Text())
-	job_date := cleanString(card.Find(".job_date").Text())
-	job_sector := cleanString(card.Find(".job_sector").Text())
+	title := CleanString(card.Find(".job_tit>a").Text())
+	job_condition := CleanString(card.Find(".job_condition").Text())
+	job_date := CleanString(card.Find(".job_date").Text())
+	job_sector := CleanString(card.Find(".job_sector").Text())
 
 	c <- extractedJob{
 		id:            id,
