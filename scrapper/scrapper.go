@@ -20,7 +20,7 @@ type extractedJob struct {
 }
 
 // Scrape Indeed by a term
-func scrape(term string) {
+func Scrape(term string) {
 	var baseURL string = "https://saramin.co.kr/zf_user/search/recruit?searchword=" + term
 	var jobs []extractedJob
 	c := make(chan []extractedJob)
